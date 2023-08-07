@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    container_name: backend
+    ports:
+      - 8080:8080
+    command:
+      [
+        "sh",
+        "-c",
+        "git clone https://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@github.com/rakhsas/java-auth-app.git /app ; \
+        cd /app && mvn clean install && java -jar target/demo-0.0.1-SNAPSHOT.jar"
+      ]
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - database
+    networks:
+      my-network:
+        ipv4_address: 192.168.92.2
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    container_name: frontend
+    ports:
+      - 4200:4200
+    command:
+      [
+        "sh",
+        "-c",
+        "git clone https://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@github.com/rakhsas/angular-auth-app.git /app ; \
+        cd /app &&  npm install -g @angular/cli && npm install && ng serve --host 0.0.0.0"
+      ]
+    volumes:
+      - ./frontend:/app
+    networks:
+      my-network:
+        ipv4_address: 192.168.92.3
+
+  database:
+    image: 'postgres:13'
+    container_name: database
+    environment:
+      POSTGRES_DB: db1
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - 5432:5432
+    networks:
+      my-network:
+        ipv4_address: 192.168.92.4
+
+networks:
+  my-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.92.0/24
